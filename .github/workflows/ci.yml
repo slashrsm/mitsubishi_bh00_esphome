@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  protocol:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install a compiler
+        run: sudo apt-get update && sudo apt-get install -y g++
+      - name: Decode and encode known frames
+        run: |
+          g++ -std=c++17 -Wall -Wextra -Werror -I components/mitsubishi_bh00 \
+            tests/test_protocol.cpp -o /tmp/test_protocol
+          /tmp/test_protocol
+
+  firmware:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ESPHome 2026.11
+        run: pip install "esphome==2026.11.0"
+      - name: Dummy secrets
+        run: cp example/secrets.yaml.example example/secrets.yaml
+      - name: Compile the Hailege example
+        run: esphome compile example/hailege.yaml
